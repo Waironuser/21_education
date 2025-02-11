@@ -1,0 +1,469 @@
+#include <float.h>
+#include "cherlyma_lib/cherlyma.h"
+
+#test s21_negate_test_001
+// Test negating a positive number
+s21_decimal value = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal result;
+s21_decimal expected = {{123, 0, 0, 0x80000000}}; // -123
+int status = s21_negate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_negate_test_002
+// Test negating a negative number
+s21_decimal value = {{456, 0, 0, 0x80000000}}; // -456
+s21_decimal result;
+s21_decimal expected = {{456, 0, 0, 0x00000000}}; // 456
+int status = s21_negate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_negate_test_003
+// Test negating zero
+s21_decimal value = {{0, 0, 0, 0x00000000}}; // 0
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x80000000}}; // -0
+int status = s21_negate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_negate_test_004
+// Test negating a number with non-zero scale
+s21_decimal value = {{1234, 0, 0, 0x00020000}}; // 12.34
+s21_decimal result;
+s21_decimal expected = {{1234, 0, 0, 0x80020000}}; // -12.34
+int status = s21_negate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_negate_test_005
+// Test negating a number with maximum scale
+s21_decimal value = {{0xdb9120cc, 0xc00a91ad, 0xccda9527, 0x001C0000}}; // 6.3399192198097382612698996940
+s21_decimal result;
+s21_decimal expected = {{0xdb9120cc, 0xc00a91ad, 0xccda9527, 0x801C0000}}; // -6.3399192198097382612698996940
+int status = s21_negate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_truncate_test_001
+// Test truncating a positive number with fractional part
+s21_decimal value = {{1234, 0, 0, 0x00020000}}; // 12.34
+s21_decimal result;
+s21_decimal expected = {{12, 0, 0, 0x00000000}}; // 12
+int status = s21_truncate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_truncate_test_002
+// Test truncating a negative number with fractional part
+s21_decimal value = {{1234, 0, 0, 0x80020000}}; // -12.34
+s21_decimal result;
+s21_decimal expected = {{12, 0, 0, 0x80000000}}; // -12
+int status = s21_truncate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_truncate_test_003
+// Test truncating a number without fractional part
+s21_decimal value = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal result;
+s21_decimal expected = {{123, 0, 0, 0x00000000}}; // 123
+int status = s21_truncate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_truncate_test_004
+// Test truncating zero
+s21_decimal value = {{0, 0, 0, 0x00020000}}; // 0.00
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_truncate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_truncate_test_005
+// Test truncating a number with maximum scale
+s21_decimal value = {{1234567, 0, 0, 0x001C0000}}; // 0.0000000000000001234567
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_truncate(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_001
+// Test flooring a positive number with fractional part
+s21_decimal value = {{1234, 0, 0, 0x00020000}}; // 12.34
+s21_decimal result;
+s21_decimal expected = {{12, 0, 0, 0x00000000}}; // 12
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_002
+// Test flooring a negative number with fractional part
+s21_decimal value = {{1234, 0, 0, 0x80020000}}; // -12.34
+s21_decimal result;
+s21_decimal expected = {{13, 0, 0, 0x80000000}}; // -13
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_003
+// Test flooring a number without fractional part
+s21_decimal value = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal result;
+s21_decimal expected = {{123, 0, 0, 0x00000000}}; // 123
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_004
+// Test flooring zero
+s21_decimal value = {{0, 0, 0, 0x00020000}}; // 0.00
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_005
+// Test flooring a number with maximum scale
+s21_decimal value = {{1234567, 0, 0, 0x001C0000}}; // 0.0000000000000001234567
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_006
+// Test flooring a negative number close to zero
+s21_decimal value = {{1, 0, 0, 0x801C0000}}; // -0.0000000000000000000001
+s21_decimal result;
+s21_decimal expected = {{1, 0, 0, 0x80000000}}; // -1
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_floor_test_007
+// Test flooring a number with maximum fractional part
+s21_decimal value = {{0x8e24deff, 0xaa664733, 0xe4b39c67, 0x001C0000}}; // 7.0779718562442241269085560575
+s21_decimal result;
+s21_decimal expected = {{7, 0x00000000, 0x00000000, 0x00000000}}; // 7
+int status = s21_floor(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_001
+// Test rounding a positive number with fractional part less than 0.5
+s21_decimal value = {{1234, 0, 0, 0x00020000}}; // 12.34
+s21_decimal result;
+s21_decimal expected = {{12, 0, 0, 0x00000000}}; // 12
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_002
+// Test rounding a positive number with fractional part greater than 0.5
+s21_decimal value = {{1256, 0, 0, 0x00020000}}; // 12.56
+s21_decimal result;
+s21_decimal expected = {{13, 0, 0, 0x00000000}}; // 13
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_003
+// Test rounding a negative number with fractional part less than 0.5
+s21_decimal value = {{1234, 0, 0, 0x80020000}}; // -12.34
+s21_decimal result;
+s21_decimal expected = {{12, 0, 0, 0x80000000}}; // -12
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_004
+// Test rounding a negative number with fractional part greater than 0.5
+s21_decimal value = {{1256, 0, 0, 0x80020000}}; // -12.56
+s21_decimal result;
+s21_decimal expected = {{13, 0, 0, 0x80000000}}; // -13
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_005
+// Test rounding a number without fractional part
+s21_decimal value = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal result;
+s21_decimal expected = {{123, 0, 0, 0x00000000}}; // 123
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_006
+// Test rounding zero
+s21_decimal value = {{0, 0, 0, 0x00020000}}; // 0.00
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_007
+// Test rounding a number with fractional part exactly 0.5
+s21_decimal value = {{1250, 0, 0, 0x00020000}}; // 12.50
+s21_decimal result;
+s21_decimal expected = {{12, 0, 0, 0x00000000}}; // 12
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_round_test_008
+// Test rounding a number with fractional part exactly 0.5
+s21_decimal value = {{0x61957cad, 0xb59e8e00, 0xebedfcfd, 0x001C0000}}; // 7.3016687443731745763312893101
+s21_decimal result;
+s21_decimal expected = {{7, 0, 0, 0x00000000}}; // 7
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+// F2645976F53F8E7A31957CAD
+// 75016687443731745763312893101
+// 11100 0000000000000000
+
+#test s21_round_test_009
+// Test rounding a number with fractional part exactly 0.5
+s21_decimal value = {{0x31957CAD, 0xF53F8E7A, 0xF2645976, 0x001C0000}}; // 7.5016687443731745763312893101
+s21_decimal result;
+s21_decimal expected = {{8, 0, 0, 0x00000000}}; // 8
+int status = s21_round(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_is_not_equal_test_001
+// Test comparing two equal positive numbers
+s21_decimal value1 = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal value2 = {{123, 0, 0, 0x00000000}}; // 123
+int result = s21_is_not_equal(value1, value2);
+ck_assert_int_eq(result, 0);
+
+#test s21_is_not_equal_test_002
+// Test comparing two different positive numbers
+s21_decimal value1 = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal value2 = {{124, 0, 0, 0x00000000}}; // 124
+int result = s21_is_not_equal(value1, value2);
+ck_assert_int_eq(result, 1);
+
+#test s21_is_not_equal_test_003
+// Test comparing a positive and a negative number
+s21_decimal value1 = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal value2 = {{123, 0, 0, 0x80000000}}; // -123
+int result = s21_is_not_equal(value1, value2);
+ck_assert_int_eq(result, 1);
+
+// #test s21_is_not_equal_test_004
+// Test comparing two equal numbers with different scales
+// s21_decimal value1 = {{1230, 0, 0, 0x00010000}}; // 123.0
+// s21_decimal value2 = {{123, 0, 0, 0x00000000}}; // 123
+// int result = s21_is_not_equal(value1, value2);
+// ck_assert_int_eq(result, 0);
+
+#test s21_is_not_equal_test_005
+// Test comparing zero and negative zero
+s21_decimal value1 = {{0, 0, 0, 0x00000000}}; // 0
+s21_decimal value2 = {{0, 0, 0, 0x80000000}}; // -0
+int result = s21_is_not_equal(value1, value2);
+ck_assert_int_eq(result, 0);
+
+// #test s21_is_not_equal_test_006
+// Test comparing numbers with different representations but equal value
+// s21_decimal value1 = {{1000, 0, 0, 0x00030000}}; // 1.000
+// s21_decimal value2 = {{1, 0, 0, 0x00000000}}; // 1
+// int result = s21_is_not_equal(value1, value2);
+// ck_assert_int_eq(result, 0);
+
+#test s21_is_not_equal_test_007
+// Test comparing max value with a smaller number
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // Max value
+s21_decimal value2 = {{1, 0, 0, 0x00000000}}; // 1
+int result = s21_is_not_equal(value1, value2);
+ck_assert_int_eq(result, 1);
+
+// #test s21_is_not_equal_test_008
+// Test comparing almost max values and different representations
+// s21_decimal value1 = {{0x0F29FE0A, 0x2B3C3186, 0x194D7515, 0x801B0000}}; // 7.830765441019493955045817866
+// s21_decimal value2 = {{0x97A3EC64, 0xB059EF3C, 0xFD0692D3, 0x801C0000}}; // 7.8307654410194939550458178660
+// int result = s21_is_not_equal(value1, value2);
+// ck_assert_int_eq(result, 0);
+
+#test s21_add_test_002
+// Test adding with overflow
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // Max value
+s21_decimal value2 = {{1, 0, 0, 0x00000000}}; // 1
+s21_decimal result;
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 1); // Should return 1 for positive overflow
+ck_assert_int_eq(result.bits[0], 0);
+ck_assert_int_eq(result.bits[1], 0);
+ck_assert_int_eq(result.bits[2], 0);
+ck_assert_int_eq(result.bits[3], 0);
+
+#test s21_add_test_003
+// Test adding with negative overflow
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x80000000}}; // Min value
+s21_decimal value2 = {{1, 0, 0, 0x80000000}}; // -1
+s21_decimal result;
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 2); // Should return 2 for negative overflow
+ck_assert_int_eq(result.bits[0], 0);
+ck_assert_int_eq(result.bits[1], 0);
+ck_assert_int_eq(result.bits[2], 0);
+ck_assert_int_eq(result.bits[3], 0);
+
+#test s21_add_test_004
+// Test adding with invalid decimal (scale > 28)
+s21_decimal value1 = {{123, 0, 0, 0x1D000000}}; // Invalid scale of 29
+s21_decimal value2 = {{456, 0, 0, 0x00000000}};
+s21_decimal result;
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 4); // Should return 4 for invalid decimal
+
+#test s21_mul_test_003
+// Test multiplication with invalid decimal
+s21_decimal value1 = {{123, 0, 0, 0x1D000000}}; // Invalid scale of 29
+s21_decimal value2 = {{456, 0, 0, 0x00000000}};
+s21_decimal result;
+int status = s21_mul(value1, value2, &result);
+ck_assert_int_eq(status, 4); // Should return 4 for invalid decimal
+
+#test s21_mul_test_004
+// Test multiplication with zero
+s21_decimal value1 = {{0, 0, 0, 0x80000000}}; // -0
+s21_decimal value2 = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_mul(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_div_to_10_test_001
+// Test basic division by 10
+s21_decimal value = {{123, 0, 0, 0x00000000}}; // 123
+unsigned int remainder = 0;
+s21_div_to_10(&value, &remainder);
+s21_decimal expected = {{12, 0, 0, 0x00000000}}; // 12
+ck_assert_int_eq(remainder, 3);
+ck_assert_int_eq(value.bits[0], expected.bits[0]);
+ck_assert_int_eq(value.bits[1], expected.bits[1]);
+ck_assert_int_eq(value.bits[2], expected.bits[2]);
+
+#test s21_div_to_10_test_002
+// Test division by 10 with scale
+s21_decimal value = {{1234, 0, 0, 0x00010000}}; // 123.4
+unsigned int remainder = 0;
+s21_div_to_10(&value, &remainder);
+s21_decimal expected = {{123, 0, 0, 0x00010000}}; // 12.3
+ck_assert_int_eq(remainder, 4);
+ck_assert_int_eq(value.bits[0], expected.bits[0]);
+ck_assert_int_eq(value.bits[1], expected.bits[1]);
+ck_assert_int_eq(value.bits[2], expected.bits[2]);
+
+#test s21_round_float_test_001
+// Test rounding with remainder > 5
+s21_decimal value = {{1234, 0, 0, 0x00010000}}; // 123.4
+round_float(&value);
+s21_decimal expected = {{123, 0, 0, 0x00000000}}; // 123
+ck_assert_int_eq(value.bits[0], expected.bits[0]);
+ck_assert_int_eq(value.bits[1], expected.bits[1]);
+ck_assert_int_eq(value.bits[2], expected.bits[2]);
+ck_assert_int_eq(value.bits[3], expected.bits[3]);
+
+#test s21_round_float_test_002
+// Test rounding with remainder = 5 and odd integer
+s21_decimal value = {{1235, 0, 0, 0x00010000}}; // 123.5
+round_float(&value);
+s21_decimal expected = {{124, 0, 0, 0x00000000}}; // 124
+ck_assert_int_eq(value.bits[0], expected.bits[0]);
+ck_assert_int_eq(value.bits[1], expected.bits[1]);
+ck_assert_int_eq(value.bits[2], expected.bits[2]);
+ck_assert_int_eq(value.bits[3], expected.bits[3]);

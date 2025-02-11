@@ -1,0 +1,559 @@
+#include "s21_decimal.h"
+#include "sobektof_lib/s21_decimal_get_set_info_bits.h"
+
+#test s21_add_test_001
+// Test add a positive numbers
+s21_decimal value1 = {{123, 0, 0, 0x00000000}}; // 123
+s21_decimal value2 = {{321, 0, 0, 0x00000000}}; // 321
+s21_decimal result;
+s21_decimal expected = {{444, 0, 0, 0x00000000}}; // 444
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_add_test_002
+// Test add a one negative number
+s21_decimal value1 = {{56, 0, 0, 0x00000000}}; // 56
+s21_decimal value2 = {{20, 0, 0, 0x80000000}}; // -20
+s21_decimal result;
+s21_decimal expected = {{36, 0, 0, 0x00000000}}; // 36
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_add_test_003
+// Test add a one negative number
+s21_decimal value1 = {{46, 0, 0, 0x00000000}}; // 46
+s21_decimal value2 = {{52, 0, 0, 0x80000000}}; // -52
+s21_decimal result;
+s21_decimal expected = {{6, 0, 0, 0x80000000}}; // -6
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_add_test_004
+// Test add a two negating number
+s21_decimal value1 = {{56, 0, 0, 0x80000000}}; // -56
+s21_decimal value2 = {{20, 0, 0, 0x80000000}}; // -20
+s21_decimal result;
+s21_decimal expected = {{76, 0, 0, 0x80000000}}; //-76
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_add_test_005
+// Test add a one negative number
+s21_decimal value1 = {{4256, 0, 0, 0x80000000}}; // -4256
+s21_decimal value2 = {{12, 0, 0, 0x00000000}}; // 12
+s21_decimal result;
+s21_decimal expected = {{4244, 0, 0, 0x80000000}}; // -4244
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_add_test_006
+// Test add a one negative number
+s21_decimal value1 = {{300, 0, 0, 0x80000000}}; // -300
+s21_decimal value2 = {{1300, 0, 0, 0x00000000}}; // 1300
+s21_decimal result;
+s21_decimal expected = {{1000, 0, 0, 0x00000000}}; // 1000
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+// #test s21_add_test_007
+// s21_decimal value1 = {{1262, 0, 0, 0x80020000}}; // -12,62
+// s21_decimal value2 = {{1267, 0, 0, 0x00010000}}; // 126,7
+// s21_decimal result;
+// s21_decimal expected = {{11408, 0, 0, 0x00020000}}; // 114,08
+// int status = s21_add(value1, value2, &result);
+// ck_assert_int_eq(status, 0);
+// ck_assert_int_eq(result.bits[0], expected.bits[0]);
+// ck_assert_int_eq(result.bits[1], expected.bits[1]);
+// ck_assert_int_eq(result.bits[2], expected.bits[2]);
+// ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_add_test_008
+// Test add a max nums 
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // 79,228,162,514,264,337,593,543,950,335
+s21_decimal value2 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // 79,228,162,514,264,337,593,543,950,335
+s21_decimal result;
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_add(value1, value2, &result);
+ck_assert_int_eq(status, 1);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_001
+// Test sub a positive numbers
+s21_decimal value1 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal value2 = {{25, 0, 0, 0x00000000}}; // 25
+s21_decimal result;
+s21_decimal expected = {{25, 0, 0, 0x00000000}}; // 25
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_002
+// Test sub a negative numbers
+s21_decimal value1 = {{50, 0, 0, 0x80000000}}; // -50
+s21_decimal value2 = {{25, 0, 0, 0x80000000}}; // -25
+s21_decimal result;
+s21_decimal expected = {{25, 0, 0, 0x80000000}}; // -25
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_003
+// Test sub a negative numbers
+s21_decimal value1 = {{25, 0, 0, 0x80000000}}; // -25
+s21_decimal value2 = {{50, 0, 0, 0x80000000}}; // -50
+s21_decimal result;
+s21_decimal expected = {{25, 0, 0, 0x00000000}}; // 25
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_004
+// Test sub a one negative number
+s21_decimal value1 = {{25, 0, 0, 0x00000000}}; // 25
+s21_decimal value2 = {{50, 0, 0, 0x80000000}}; // -50
+s21_decimal result;
+s21_decimal expected = {{75, 0, 0, 0x00000000}}; // 75
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_005
+// Test sub a positive numbers
+s21_decimal value1 = {{25, 0, 0, 0x00000000}}; // 25
+s21_decimal value2 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal result;
+s21_decimal expected = {{25, 0, 0, 0x80000000}}; // -25
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_006
+// Test sub a positive numbers
+s21_decimal value1 = {{25, 0, 0, 0x00000000}}; // 25
+s21_decimal value2 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal result;
+s21_decimal expected = {{25, 0, 0, 0x80000000}}; // -25
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+// #test s21_sub_test_007
+// Test sub a positive numbers
+// s21_decimal value1 = {{1256, 0, 0, 0x00020000}}; // 12.56
+// s21_decimal value2 = {{12, 0, 0, 0x00000000}}; // 12
+// s21_decimal result;
+// s21_decimal expected = {{56, 0, 0, 0x00020000}}; // 0.56
+// int status = s21_sub(value1, value2, &result);
+// ck_assert_int_eq(status, 0);
+// ck_assert_int_eq(result.bits[0], expected.bits[0]);
+// ck_assert_int_eq(result.bits[1], expected.bits[1]);
+// ck_assert_int_eq(result.bits[2], expected.bits[2]);
+// ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_008
+// Test sub a positive numbers
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // 79,228,162,514,264,337,593,543,950,335
+s21_decimal value2 = {{6, 0, 0, 0x00010000}}; // 0.6
+s21_decimal result = {{0, 0, 0, 0}};
+s21_decimal expected = {{0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // 79,228,162,514,264,337,593,543,950,334
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_009
+// 
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // 79,228,162,514,264,337,593,543,950,335
+s21_decimal value2 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x80000000}}; // 
+s21_decimal result = {{0, 0, 0, 0}};
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 1);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_sub_test_010
+// 
+s21_decimal value1 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x80000000}}; // 79,228,162,514,264,337,593,543,950,335
+s21_decimal value2 = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000}}; // 
+s21_decimal result = {{0, 0, 0, 0}};
+s21_decimal expected = {{0, 0, 0, 0x00000000}}; // 0
+int status = s21_sub(value1, value2, &result);
+ck_assert_int_eq(status, 2);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_is_equal_test_001
+// Test is_equal a null numbers
+s21_decimal value1 = {{0, 0, 0, 0x00000000}}; // 0
+s21_decimal value2 = {{0, 0, 0, 0x00000000}}; // 0
+int expected = 1; 
+int result = s21_is_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_equal_test_002
+// Test is_equal a null numbers and not equal signs
+s21_decimal value1 = {{0, 0, 0, 0x80000000}}; // -0
+s21_decimal value2 = {{0, 0, 0, 0x00000000}}; // 0
+int expected = 1; 
+int result = s21_is_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_equal_test_003
+// Test is_equal a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x80000000}}; // -5
+s21_decimal value2 = {{5, 0, 0, 0x00000000}}; // 5
+int expected = 0; 
+int result = s21_is_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_equal_test_004
+// Test is_equal a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x80000000}}; // -5
+s21_decimal value2 = {{5, 0, 0, 0x00000000}}; // 5
+int expected = 0; 
+int result = s21_is_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_test_001
+// Test is_greater a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x00000000}}; // 5
+s21_decimal value2 = {{5, 0, 0, 0x80000000}}; // -5
+int expected = 1; 
+int result = s21_is_greater(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_test_002
+// Test is_greater a null numbers
+s21_decimal value1 = {{0, 0, 0, 0x00000000}}; // 0
+s21_decimal value2 = {{0, 0, 0, 0x00000000}}; // 0
+int expected = 0; 
+int result = s21_is_greater(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_or_equal_test_001
+// Test is_greater_or_equal a null numbers
+s21_decimal value1 = {{0, 0, 0, 0x00000000}}; // 0
+s21_decimal value2 = {{0, 0, 0, 0x00000000}}; // 0
+int expected = 1; 
+int result = s21_is_greater_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_or_equal_test_002
+// Test is_greater_or_equal a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x00000000}}; // 5
+s21_decimal value2 = {{5, 0, 0, 0x80000000}}; // -5
+int expected = 1; 
+int result = s21_is_greater_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_or_equal_test_003
+// Test is_greater_or_equal a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x80000000}}; // -5
+s21_decimal value2 = {{5, 0, 0, 0x00000000}}; // 5
+int expected = 0; 
+int result = s21_is_greater_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_or_equal_test_004
+// Test is_greater_or_equal a not equal nums
+s21_decimal value1 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal value2 = {{25, 0, 0, 0x00000000}}; // 25
+int expected = 1; 
+int result = s21_is_greater_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_or_equal_test_005
+// Test is_greater_or_equal a not equal nums
+s21_decimal value1 = {{25, 0, 0, 0x00000000}}; // 25
+s21_decimal value2 = {{50, 0, 0, 0x00000000}}; // 50
+int expected = 0; 
+int result = s21_is_greater_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_greater_or_equal_test_006
+// Test is_greater_or_equal a equal nums
+s21_decimal value1 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal value2 = {{50, 0, 0, 0x00000000}}; // 50
+int expected = 1; 
+int result = s21_is_greater_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_test_001
+// Test is_less a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x00000000}}; // 5
+s21_decimal value2 = {{5, 0, 0, 0x80000000}}; // -5
+int expected = 0; 
+int result = s21_is_less(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_test_002
+// Test is_less a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x80000000}}; // -5
+s21_decimal value2 = {{5, 0, 0, 0x00000000}}; // 5
+int expected = 1; 
+int result = s21_is_less(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_001
+// Test is_less_or_equal a null numbers
+s21_decimal value1 = {{0, 0, 0, 0x00000000}}; // 0
+s21_decimal value2 = {{0, 0, 0, 0x00000000}}; // 0
+int expected = 1; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_002
+// Test is_less_or_equal a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x00000000}}; // 5
+s21_decimal value2 = {{5, 0, 0, 0x80000000}}; // -5
+int expected = 0; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_003
+// Test is_less_or_equal a not equal signs
+s21_decimal value1 = {{5, 0, 0, 0x80000000}}; // -5
+s21_decimal value2 = {{5, 0, 0, 0x00000000}}; // 5
+int expected = 1; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_004
+// Test is_less_or_equal a not equal nums
+s21_decimal value1 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal value2 = {{25, 0, 0, 0x00000000}}; // 25
+int expected = 0; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_005
+// Test is_less_or_equal a not equal nums
+s21_decimal value1 = {{25, 0, 0, 0x00000000}}; // 25
+s21_decimal value2 = {{50, 0, 0, 0x00000000}}; // 50
+int expected = 1; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_006
+// Test is_less_or_equal a equal nums
+s21_decimal value1 = {{50, 0, 0, 0x00000000}}; // 50
+s21_decimal value2 = {{50, 0, 0, 0x00000000}}; // 50
+int expected = 1; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+// #test s21_is_less_or_equal_test_007
+// Test is_less_or_equal a equal nums
+// s21_decimal value2 = {{250, 0, 0, 0x00010000}}; // 25.0
+// s21_decimal value1 = {{25, 0, 0, 0x00000000}}; // 25
+// int expected = 1; 
+// int result = s21_is_less_or_equal(value1, value2);
+// ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_008
+// Test is_less_or_equal a not equal nums
+s21_decimal value1 = {{240, 0, 0, 0x00010000}}; // 24.0
+s21_decimal value2 = {{25, 0, 0, 0x00000000}}; // 25
+int expected = 1; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_009
+// Test is_less_or_equal a not equal nums
+s21_decimal value1 = {{240, 0, 0, 0x00010000}}; // 24.0
+s21_decimal value2 = {{25, 0, 0, 0x80000000}}; // -25
+int expected = 0; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_is_less_or_equal_test_010
+// Test is_less_or_equal a not equal nums
+s21_decimal value2 = {{000, 0, 0, 0x00020000}}; // 0.00
+s21_decimal value1 = {{0, 0, 0, 0x80000000}}; // -0
+int expected = 1; 
+int result = s21_is_less_or_equal(value1, value2);
+ck_assert_int_eq(result, expected);
+
+#test s21_from_float_to_decimal_test_001
+// Test from_float_to_decimal a normal nums
+float value = 0.5;
+s21_decimal expected = {{5, 0, 0, 0x00010000}};
+s21_decimal result = {{0, 0, 0, 0}};
+int status = s21_from_float_to_decimal(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_from_float_to_decimal_test_002
+// Test from_float_to_decimal a !dst
+int value = 345;
+s21_decimal* result = NULL;
+int status = s21_from_float_to_decimal(value, result);
+ck_assert_int_eq(status, 1);
+
+#test s21_from_float_to_decimal_test_003
+// Test from_float_to_decimal a small num
+float value = 0.00000000000000000000000000001f; 
+s21_decimal expected = {{0, 0, 0, 0}};
+s21_decimal result = {{0, 0, 0, 0}};
+int status = s21_from_float_to_decimal(value, &result);
+ck_assert_int_eq(status, 1);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_from_float_to_decimal_test_004
+// Test from_float_to_decimal a big num
+float value = 792281625142643375935439503364.0f; 
+s21_decimal result = {{0, 0, 0, 0}};
+int status = s21_from_float_to_decimal(value, &result);
+ck_assert_int_eq(status, 1);
+
+#test s21_from_int_to_decimal_test_001
+// Test from_int_to_decimal a normal nums
+int value = 54;
+s21_decimal expected = {{54, 0, 0, 0x00000000}};
+s21_decimal result = {{0, 0, 0, 0}};
+int status = s21_from_int_to_decimal(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_from_int_to_decimal_test_002
+// Test from_int_to_decimal a null nums
+int value = 0;
+s21_decimal expected = {{0, 0, 0, 0x00000000}};
+s21_decimal result = {{0, 0, 0, 0}};
+int status = s21_from_int_to_decimal(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_from_int_to_decimal_test_003
+// Test from_int_to_decimal a long negative nums
+int value = -2856;
+s21_decimal expected = {{2856, 0, 0, 0x80000000}};
+s21_decimal result = {{0, 0, 0, 0}};
+int status = s21_from_int_to_decimal(value, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+#test s21_from_int_to_decimal_test_004
+// Test from_int_to_decimal a !dst
+int value = 345;
+s21_decimal* result = NULL;
+int status = s21_from_int_to_decimal(value, result);
+ck_assert_int_eq(status, 1);
+
+#test s21_is_correct_decimal_test_001
+// Test is_correct_decimal a normal
+s21_decimal value = {{154, 0, 0, 0x00000000}};
+int status = s21_is_correct_decimal(value);
+ck_assert_int_eq(status, 1);
+
+#test s21_is_correct_decimal_test_002
+// Test is_correct_decimal a too small
+s21_decimal value = {{1, 0, 0, 0x00300000}};
+int status = s21_is_correct_decimal(value);
+ck_assert_int_eq(status, 0);
+
+#test s21_div_test_001
+// 
+s21_decimal value1 = {{5, 0, 0, 0x00000000}}; // 5
+s21_decimal value2 = {{25, 0, 0, 0x00010000}}; // 2.5
+s21_decimal result;
+s21_decimal expected = {{2, 0, 0, 0x00000000}}; // 2
+int status = s21_div(value1, value2, &result);
+ck_assert_int_eq(status, 0);
+ck_assert_int_eq(result.bits[0], expected.bits[0]);
+ck_assert_int_eq(result.bits[1], expected.bits[1]);
+ck_assert_int_eq(result.bits[2], expected.bits[2]);
+ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+// #test s21_div_test_002
+// 
+// s21_decimal value1 = {{75, 0, 0, 0x00000000}}; // 75
+// s21_decimal value2 = {{150, 0, 0, 0x00000000}}; // 150
+// s21_decimal result;
+// s21_decimal expected = {{5, 0, 0, 0x00010000}}; // 0.5
+// int status = s21_div(value1, value2, &result);
+// ck_assert_int_eq(status, 0);
+// ck_assert_int_eq(result.bits[0], expected.bits[0]);
+// ck_assert_int_eq(result.bits[1], expected.bits[1]);
+// ck_assert_int_eq(result.bits[2], expected.bits[2]);
+// ck_assert_int_eq(result.bits[3], expected.bits[3]);
+
+// #test s21_div_test_003
+// 
+// s21_decimal value1 = {{25, 0, 0, 0x00010000}}; // 2.5
+// s21_decimal value2 = {{5, 0, 0, 0x00000000}}; // 5
+// s21_decimal result;
+// s21_decimal expected = {{5, 0, 0, 0x00010000}}; // 0.5
+// int status = s21_div(value1, value2, &result);
+// ck_assert_int_eq(status, 0);
+// ck_assert_int_eq(result.bits[0], expected.bits[0]);
+// ck_assert_int_eq(result.bits[1], expected.bits[1]);
+// ck_assert_int_eq(result.bits[2], expected.bits[2]);
+// ck_assert_int_eq(result.bits[3], expected.bits[3]);

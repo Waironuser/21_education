@@ -1,0 +1,19 @@
+Stop and delete all running containers
+sudo docker rm -f $(sudo docker ps -q)
+
+Delete the image
+sudo docker rmi decimal-runner
+
+Build the image
+sudo docker build -t decimal-runner .
+
+Run the container
+sudo docker run -d \
+    -e GITLAB_URL="https://gitlab.com/" \
+    -e REGISTRATION_TOKEN="your-token-here" \
+    -e TOKEN="your-telegram-token" \
+    -e CHAT_ID="your-chat-id" \
+    -e TOPIC_ID="your-topic-id" \
+    my-gitlab-runner
+
+Docker image will be around 1.4GB in size

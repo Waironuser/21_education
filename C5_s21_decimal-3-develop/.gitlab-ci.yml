@@ -1,0 +1,191 @@
+default:
+  tags:
+    - linux
+
+stages:
+  - .pre
+  - clang-format
+  - build
+  - tests
+  - gcov-report
+  - .post
+
+variables:
+  TELEGRAM_BOT_TOKEN: ""
+  TELEGRAM_CHAT_ID: ""
+  TELEGRAM_TOPIC_ID: ""
+
+.load_telegram_vars: &load_telegram_vars |
+  export TELEGRAM_BOT_TOKEN=$(cat ~/token.tg)
+  export TELEGRAM_CHAT_ID=$(cat ~/chat_id.tg)
+  export TELEGRAM_TOPIC_ID=$(cat ~/topic_id.tg)
+
+.check_status:
+  script:
+    - |
+      if [ $CI_JOB_STATUS == "success" ]; then
+        STATUS="✅ Passed"
+      else
+        STATUS="❌ Failed"
+      fi
+
+.notify_telegram:
+  before_script:
+    - *load_telegram_vars
+  script:
+    - |
+      curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+        -d chat_id=$TELEGRAM_CHAT_ID \
+        -d message_thread_id=$TELEGRAM_TOPIC_ID \
+        -d parse_mode=markdown \
+        -d text="*$CI_PROJECT_NAME* - $CI_JOB_STAGE
+        Status: $STATUS
+        Job: $CI_JOB_NAME
+        Branch: $CI_COMMIT_REF_NAME" \
+        > /dev/null 2>&1
+
+.check_and_notify:
+  after_script:
+    - !reference [.check_status, script]
+    - !reference [.notify_telegram, before_script]
+    - !reference [.notify_telegram, script]
+
+.notify_telegram_start:
+  stage: .pre
+  dependencies: []
+  script:
+    - *load_telegram_vars
+    - |
+      echo "Sending Telegram notification..."
+      max_retries=10
+      attempt=0
+      success=false
+
+      while [ $attempt -lt $max_retries ]; do
+        response=$(curl -s -w "\n%{http_code}" -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+          -d chat_id=$TELEGRAM_CHAT_ID \
+          -d message_thread_id=$TELEGRAM_TOPIC_ID \
+          -d parse_mode=markdown \
+          -d text="🚀 *$CI_PROJECT_NAME* - Pipeline Started
+          Branch: $CI_COMMIT_REF_NAME
+          Commit: $CI_COMMIT_SHORT_SHA
+          Author: $GITLAB_USER_NAME
+          Commit message: $CI_COMMIT_MESSAGE")
+        
+        status_code=$(echo "$response" | tail -n1)
+
+        if [ "$status_code" = "200" ]; then
+          echo "Telegram notification sent successfully (HTTP $status_code)"
+          success=true
+          break
+        else
+          echo "Failed to send Telegram notification (HTTP $status_code). Retrying..."
+          attempt=$((attempt + 1))
+          sleep 2
+        fi
+      done
+
+      if [ "$success" = false ]; then
+        echo "Exceeded maximum retries. Telegram notification could not be sent."
+        exit 1
+      fi
+  allow_failure: true
+
+.notify_telegram_end:
+  stage: .post
+  when: always
+  dependencies: []
+  script:
+    - *load_telegram_vars
+    - !reference [.check_status, script]
+    - |
+      curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+        -d chat_id=$TELEGRAM_CHAT_ID \
+        -d message_thread_id=$TELEGRAM_TOPIC_ID \
+        -d parse_mode=markdown \
+        -d text="🏁 *$CI_PROJECT_NAME* - Pipeline Finished
+        Branch: $CI_COMMIT_REF_NAME
+        Commit: $CI_COMMIT_SHORT_SHA" \
+        > /dev/null 2>&1
+
+.send_gcov_report:
+  script:
+    - *load_telegram_vars
+    - |
+      cd src
+      zip -r s21_gcov.zip s21_gcov
+      curl -F document=@"s21_gcov.zip" \
+        -F caption="GCov Report for $CI_PROJECT_NAME" \
+        https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument \
+        -F chat_id=$TELEGRAM_CHAT_ID \
+        -F message_thread_id=$TELEGRAM_TOPIC_ID \
+        > /dev/null 2>&1
+      rm s21_gcov.zip
+
+pipeline_start:
+  extends: .notify_telegram_start
+
+clang-format:
+  stage: clang-format
+  dependencies: []
+  allow_failure: true
+  script:
+    - CLANG_FORMAT_STATUS=0
+    - echo "src/lavadaja_lib/funcs/ src/s21_decimal_lib/ src/sobektof_lib/funcs/" | xargs -n 1 cp -v materials/linters/.clang-format
+    - |
+      for dir in src/lavadaja_lib/funcs/ src/s21_decimal_lib/ src/sobektof_lib/funcs/; do
+        cd $dir
+        clang-format -n *.c > clang_output.txt 2>&1
+        if [ -s clang_output.txt ]; then
+          echo "Clang-format found issues in $dir:"
+          cat clang_output.txt
+          CLANG_FORMAT_STATUS=1
+        fi
+        cd -
+      done
+    - exit $CLANG_FORMAT_STATUS
+  after_script:
+    - !reference [.check_and_notify, after_script]
+
+build:
+  stage: build
+  script:
+    - cd src && make
+  artifacts:
+    paths:
+      - src/s21_decimal.a
+      - src/s21_decimal_lib/*.o
+      - src/lavadaja_lib/funcs/*.o
+      - src/sobektof_lib/funcs/*.o
+    expire_in: 1 day
+  after_script:
+    - !reference [.check_and_notify, after_script]
+
+tests:
+  stage: tests
+  dependencies:
+    - build
+  needs: 
+    - job: build
+  script:
+    - cd src && make test
+  after_script:
+    - !reference [.check_and_notify, after_script]
+
+gcov-report:
+  stage: gcov-report
+  dependencies: []
+  needs:
+    - job: tests
+  script:
+    - cd src && make gcov_report
+  artifacts:
+    paths:
+      - src/s21_gcov
+    expire_in: 7 days
+  after_script:
+    - !reference [.check_and_notify, after_script]
+    - !reference [.send_gcov_report, script]
+
+pipeline_end:
+  extends: .notify_telegram_end
